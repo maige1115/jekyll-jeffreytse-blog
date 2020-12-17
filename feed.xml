@@ -1,0 +1,831 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.7">Jekyll</generator><link href="https://jeffreytse.net/feed.xml" rel="self" type="application/atom+xml" /><link href="https://jeffreytse.net/" rel="alternate" type="text/html" /><updated>2020-12-17T02:16:58+00:00</updated><id>https://jeffreytse.net/feed.xml</id><title type="html">Jeffrey Tse’s Blog</title><subtitle>This is a very personal blog. I don't write blogs for anyone, but just record what I do or what I think. So there are many things wrong and you may have different thoughts. It would be nice if I share knowledge and thoughts rather than criticism. It will be great help if you give and teach your knowledge and thoughts to me.</subtitle><author><name>jeffreytse</name></author><entry><title type="html">How to configure IP on Ubuntu</title><link href="https://jeffreytse.net/computer/2020/11/19/how-to-configure-ip-on-ubuntu.html" rel="alternate" type="text/html" title="How to configure IP on Ubuntu" /><published>2020-11-19T00:00:00+00:00</published><updated>2020-11-19T00:00:00+00:00</updated><id>https://jeffreytse.net/computer/2020/11/19/how-to-configure-ip-on-ubuntu</id><content type="html" xml:base="https://jeffreytse.net/computer/2020/11/19/how-to-configure-ip-on-ubuntu.html">&lt;h2 id=&quot;1-introduction&quot;&gt;1. Introduction&lt;/h2&gt;
+
+&lt;p&gt;We often need to configure IP (static or dynamic), especially on newly
+installed Ubuntu. However, since we have not systematically summarized
+this, this makes our memory always a little confused, but it’s actually
+very simple.&lt;/p&gt;
+
+&lt;p&gt;Here’s how to get networking all the way up in a matter of seconds
+using just a few commands from the terminal.&lt;/p&gt;
+
+&lt;h2 id=&quot;2-solutions&quot;&gt;2. Solutions&lt;/h2&gt;
+
+&lt;p&gt;There are two ways to do this:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Using ifconfig (DEPRECATED)&lt;/li&gt;
+  &lt;li&gt;Using ip and netplan (RECOMMEND)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;And we also need to find out our network interface:&lt;/p&gt;
+
+&lt;h3 id=&quot;21-identify-ethernet-interfaces&quot;&gt;2.1 Identify Ethernet Interfaces&lt;/h3&gt;
+
+&lt;p&gt;To quickly identify all available Ethernet interfaces, you can use the
+&lt;code class=&quot;highlighter-rouge&quot;&gt;ip&lt;/code&gt; command as shown below.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;ip &lt;span class=&quot;nb&quot;&gt;link&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;or&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ip a
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;22-using-ifconfig&quot;&gt;2.2 Using ifconfig&lt;/h3&gt;
+
+&lt;p&gt;Configure Dynamic IP:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Reset IP Address&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;ifconfig eth0 0.0.0.0 0.0.0.0
+
+&lt;span class=&quot;c&quot;&gt;# Start DHCP&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;dhclient
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Configure Static IP:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Stop DHCP&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;killall dhclient
+
+&lt;span class=&quot;c&quot;&gt;# Set Your IP Address&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;ifconfig eth0 192.168.1.100 netmask 255.255.255.0 up
+
+&lt;span class=&quot;c&quot;&gt;# Set Your Default Gateway&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;route add default gw 192.168.1.1
+
+&lt;span class=&quot;c&quot;&gt;# Set Your DNS Server&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;nameserver 1.1.1.1&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; /etc/resolv.conf
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;23-using-ip-and-netplan&quot;&gt;2.3 Using ip and netplan&lt;/h3&gt;
+
+&lt;p&gt;Since &lt;code class=&quot;highlighter-rouge&quot;&gt;ifconfig&lt;/code&gt; is being phased out, it’s time to get used to the
+new system. By default, some Linux distribution (e.g. Ubuntu 18.04)
+doesn’t use &lt;code class=&quot;highlighter-rouge&quot;&gt;ifconfig&lt;/code&gt; anymore, and instead uses the new commands,
+&lt;code class=&quot;highlighter-rouge&quot;&gt;ip&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;netplan&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Firstly we need to configure network interface:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Show your IP&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;ip addr show
+
+&lt;span class=&quot;c&quot;&gt;# Bring an interface up or down&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;ip &lt;span class=&quot;nb&quot;&gt;link set &lt;/span&gt;eth0 up/down
+
+&lt;span class=&quot;c&quot;&gt;# Showing your routing&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;ip route show
+
+&lt;span class=&quot;c&quot;&gt;# Show your DNS servers&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;systemd-resolve &lt;span class=&quot;nt&quot;&gt;--status&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Show your network status&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;networkctl &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; status
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And then we edit our networking plan:&lt;/p&gt;
+
+&lt;p&gt;For Ubuntu, here’s the replacement for editing &lt;code class=&quot;highlighter-rouge&quot;&gt;/etc/networking/*&lt;/code&gt;
+in the old system. The whole system now uses YAML configuration
+files under &lt;code class=&quot;highlighter-rouge&quot;&gt;/etc/netplan&lt;/code&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;vi /etc/netplan/99_config.yaml
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Netplan configuration as below:&lt;/p&gt;
+
+&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;network&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;renderer&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;networkd&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;ethernets&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;eno1&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;addresses&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;pi&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;192.168.1.100/24&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;# for static IP&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;gateway4&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;192.168.1.1&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;dhcp4&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;# for dynamic IP&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;optional&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;true&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;nameservers&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;addresses&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;pi&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;8.8.8.8&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;8.8.4.4&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;]&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;2&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And then to apply the configuration, run command as below:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;netplan apply
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;24-checking-network-connectivity&quot;&gt;2.4 Checking Network Connectivity&lt;/h3&gt;
+
+&lt;p&gt;Assuming you have configured your network, now it’s time for us to
+check if you’re all set. Test by &lt;code class=&quot;highlighter-rouge&quot;&gt;ping&lt;/code&gt; any domain name:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;ping www.google.com
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;3-conclusion&quot;&gt;3. Conclusion&lt;/h2&gt;
+
+&lt;p&gt;If you’re using an older Linux system, the &lt;code class=&quot;highlighter-rouge&quot;&gt;ifconfig&lt;/code&gt; way you have
+to do. If you’re on a newer system, never forget to use the new way &lt;code class=&quot;highlighter-rouge&quot;&gt;ip&lt;/code&gt;
+and &lt;code class=&quot;highlighter-rouge&quot;&gt;netplan&lt;/code&gt;, it’s really recommended for you.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://ubuntu.com/server/docs/network-configuration&quot;&gt;Network Configuration&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://danielmiessler.com/study/manually-set-ip-linux/&quot;&gt;How to Manually Set Your IP in Linux (including ip/netplan)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><author><name>Jeffrey Tse</name></author><category term="computer" /><category term="computer" /><category term="linux" /><category term="network" /><category term="terminal" /><summary type="html">1. Introduction</summary></entry><entry><title type="html">How to use fcitx5 elegantly on Arch Linux</title><link href="https://jeffreytse.net/computer/2020/11/19/how-to-use-fcitx5-elegantly-on-arch-linux.html" rel="alternate" type="text/html" title="How to use fcitx5 elegantly on Arch Linux" /><published>2020-11-19T00:00:00+00:00</published><updated>2020-11-19T00:00:00+00:00</updated><id>https://jeffreytse.net/computer/2020/11/19/how-to-use-fcitx5-elegantly-on-arch-linux</id><content type="html" xml:base="https://jeffreytse.net/computer/2020/11/19/how-to-use-fcitx5-elegantly-on-arch-linux.html">&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
+
+&lt;p&gt;Fcitx [ˈfaɪtɪks] is an input method framework with extension support.
+Currently it supports Linux and Unix systems like freebsd. It has
+three built-in Input Method Engine, Pinyin, QuWei and Table-based
+input methods.&lt;/p&gt;
+
+&lt;p&gt;Fcitx tries to provide a native feeling under all desktop as well as
+a light weight core. You can easily customize it to fit your
+requirements.&lt;/p&gt;
+
+&lt;p&gt;Compared with fcitx4, the experience has improved significantly, and
+many practical functions have been added.&lt;/p&gt;
+
+&lt;p&gt;Here are some stuffs worth mentioning:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The input is much smoother and almost no bugs.&lt;/li&gt;
+  &lt;li&gt;Support &lt;a href=&quot;https://en.wikipedia.org/wiki/Wayland_display_server_protocol&quot;&gt;Wayland&lt;/a&gt;
+communication protocol.&lt;/li&gt;
+  &lt;li&gt;Generate word candidates based on prefix automatically (&lt;a href=&quot;https://github.com/felixonmars/fcitx5-pinyin-zhwiki/issues/6&quot;&gt;See here&lt;/a&gt;).&lt;/li&gt;
+  &lt;li&gt;The U-mode for inputting Chinese character in splitting.&lt;/li&gt;
+  &lt;li&gt;Compatible with input method modules of &lt;code class=&quot;highlighter-rouge&quot;&gt;fcitx&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;ibus&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;Support Baidu cloud vocabulary and Sogou cell vocabulary.&lt;/li&gt;
+  &lt;li&gt;The only disadvantage is that there are few themes.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Fcitx5 has been developed for more than three years, and it has been
+well received by many Archers, so why not upgrade your fcitx4 to fcitx5.&lt;/p&gt;
+
+&lt;h2 id=&quot;installation&quot;&gt;Installation&lt;/h2&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Remove fcitx4&lt;/span&gt;
+pacman &lt;span class=&quot;nt&quot;&gt;-Rs&lt;/span&gt; &lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;pacman &lt;span class=&quot;nt&quot;&gt;-Qsq&lt;/span&gt; fcitx&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Install fcitx5 from community source&lt;/span&gt;
+pacman &lt;span class=&quot;nt&quot;&gt;-S&lt;/span&gt; fcitx5 fcitx5-gtk fcitx5-qt
+
+&lt;span class=&quot;c&quot;&gt;# Install configuration tool&lt;/span&gt;
+pacman &lt;span class=&quot;nt&quot;&gt;-S&lt;/span&gt; fcitx5-configtool
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Below packages are optional:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Install Chinese addons (Cloud Pinyin, Simplified Chinese)&lt;/span&gt;
+pacman &lt;span class=&quot;nt&quot;&gt;-S&lt;/span&gt; fcitx5-chinese-addons
+
+&lt;span class=&quot;c&quot;&gt;# Install Rime if you better like it (Traditional/Simplified Chinese)&lt;/span&gt;
+pacman &lt;span class=&quot;nt&quot;&gt;-S&lt;/span&gt; fcitx5-rime
+
+&lt;span class=&quot;c&quot;&gt;# Install Japanese IM&lt;/span&gt;
+pacman &lt;span class=&quot;nt&quot;&gt;-S&lt;/span&gt; fcitx5-anthy
+
+&lt;span class=&quot;c&quot;&gt;# Install Japanese IM using Google Engine&lt;/span&gt;
+pacman &lt;span class=&quot;nt&quot;&gt;-S&lt;/span&gt; fcitx5-mozc
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;configuration&quot;&gt;Configuration&lt;/h2&gt;
+
+&lt;h3 id=&quot;default-profile&quot;&gt;Default Profile&lt;/h3&gt;
+
+&lt;p&gt;Fcitx5 uses the Western keyboard by default, for other input methods like
+pinyin, you should modify the default profile.&lt;/p&gt;
+
+&lt;p&gt;Especially, because fcitx5 will automatically overwrite the profile
+configuration file when exiting, &lt;strong&gt;PLEASE DO NOT FORGET TO CLOSE&lt;/strong&gt; fcitx5
+process before you start to modify the profile file.&lt;/p&gt;
+
+&lt;p&gt;Edit &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.config/fcitx5/profile&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-ini highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;############################################
+# DefaultIM settings
+#
+# 1. Pinyin is for Chinese (supported by `fcitx5-chinese-addons`)
+# DefaultIM=pinyin
+#
+# 2. Rime is for Chinese (supported by `fcitx5-rime`)
+# DefaultIM=rime
+#
+&lt;/span&gt;
+&lt;span class=&quot;nn&quot;&gt;[Groups/0]&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# Group Name
+&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;Name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;Default&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# Layout
+&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;Default&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;Layout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;us&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# Default Input Method
+&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;DefaultIM&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;pinyin&lt;/span&gt;
+
+&lt;span class=&quot;nn&quot;&gt;[Groups/0/Items/0]&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# Name
+&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;Name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;keyboard-us&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# Layout
+&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;Layout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;
+
+&lt;span class=&quot;nn&quot;&gt;[Groups/0/Items/1]&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# Name
+&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;Name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;pinyin&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# Layout
+&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;Layout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;
+
+&lt;span class=&quot;nn&quot;&gt;[GroupOrder]&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;Default&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;environment-variables&quot;&gt;Environment Variables&lt;/h3&gt;
+
+&lt;p&gt;At first, get your X Desktop Environment Type:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;XDG_SESSION_TYPE&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Then edit &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.pam_environment&lt;/code&gt; (for &lt;strong&gt;X11&lt;/strong&gt; and &lt;strong&gt;Waylanda&lt;/strong&gt; users)&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;GTK_IM_MODULE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;fcitx5
+&lt;span class=&quot;nv&quot;&gt;QT_IM_MODULE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;fcitx5
+&lt;span class=&quot;nv&quot;&gt;XMODIFIERS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;@im=fcitx5&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;or edit &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.xprofile&lt;/code&gt; (only for &lt;strong&gt;X11&lt;/strong&gt; users)&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# export fcitx5 environment variables&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;GTK_IM_MODULE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;fcitx5
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;QT_IM_MODULE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;fcitx5
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;XMODIFIERS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;@im=fcitx5&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Additionally, the file &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.bash_profile&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.profile&lt;/code&gt; also can
+be used for exporting the environment variables, but the SDDM will
+only load &lt;code class=&quot;highlighter-rouge&quot;&gt;.bash_profile&lt;/code&gt; when both configuration files exist at
+the same time.&lt;/p&gt;
+
+&lt;h3 id=&quot;autostart&quot;&gt;Autostart&lt;/h3&gt;
+
+&lt;p&gt;If you are a KDE desktop user, you can easily add autostart item
+on &lt;strong&gt;System Settings&lt;/strong&gt; as below:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/9413601/100999815-1fd0a280-3598-11eb-9cf3-e77d31d2198a.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;or if you are a terminal user and better like termination way, you just
+need to create and edit &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.config/autostart/fcitx5.desktop&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-ini highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nn&quot;&gt;[Desktop Entry]&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;Name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;Fcitx5&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;GenericName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;Fcitx5 Input Method&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;Comment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;Start Fcitx5&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;Exec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;fcitx5&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;Icon&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;fcitx&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;Terminal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;false&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;Type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;Application&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;Categories&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;System;Utility;&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;StartupNotify&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;false&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;X-GNOME-Autostart-Phase&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;Applications&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;X-GNOME-AutoRestart&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;false&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;X-GNOME-Autostart-Notify&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;false&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;X-KDE-autostart-after&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;panel&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;X-KDE-StartupNotify&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;false&lt;/span&gt;
+&lt;span class=&quot;py&quot;&gt;X-GNOME-Autostart-enabled&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;true&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;or even You can directly add to &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.xprofile&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;fcitx5 &amp;amp;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;theme&quot;&gt;Theme&lt;/h3&gt;
+
+&lt;p&gt;If you don’t like the default theme that comes with it, you can also
+try to install a new theme, here is a example for demonstration:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/9413601/101030668-59170b80-35b4-11eb-8a0c-3867ec9138c5.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Firstly, install the material style theme package:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Material Style Theme&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# https://github.com/hosxy/Fcitx5-Material-Color&lt;/span&gt;
+pacman &lt;span class=&quot;nt&quot;&gt;-S&lt;/span&gt; fcitx5-material-color
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;then edit &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.config/fcitx5/conf/classicui.conf&lt;/code&gt; file:&lt;/p&gt;
+
+&lt;div class=&quot;language-ini highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# We choose one theme, such as `Pink`, 'Blue', 'Black', etc.
+&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;Theme&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;Material-Color-Pink&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;other&quot;&gt;Other&lt;/h3&gt;
+
+&lt;h4 id=&quot;disable-cloud-pinyin&quot;&gt;Disable Cloud Pinyin&lt;/h4&gt;
+
+&lt;p&gt;To prevent privacy from being uploaded, you can disable the Cloud
+Pinyin.&lt;/p&gt;
+
+&lt;p&gt;Edit &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.config/fcitx5/conf/pinyin.conf&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-ini highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Enable/Disable Cloud Pinyin
+&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;CloudPinyinEnabled&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;False&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;disable-auto-dpi&quot;&gt;Disable Auto DPI&lt;/h4&gt;
+
+&lt;p&gt;By default, fcitx5 can automatically adjust the UI size according to
+the DPI of the display, but sometimes it will be wrong. You can set
+to a fixed font size.&lt;/p&gt;
+
+&lt;p&gt;Edit &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.config/fcitx5/conf/classicui.conf&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-ini highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Enable/Disable auto DPI
+&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;PerScreenDPI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;False&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Font (Here you can set to any font you like)
+&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;Font&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Noto Sans Regular 14&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;enable-inline-preedit&quot;&gt;Enable Inline Preedit&lt;/h4&gt;
+
+&lt;p&gt;If you want it to display pre-edited text in the app when available,
+here you must not miss it. You should create or edit specific
+configuration file for different IMs:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Pinyin IM: &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.config/fcitx5/conf/pinyin.conf&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;Rime IM: &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.config/fcitx5/conf/rime.conf&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-ini highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Display pre-edited text in the app when available
+&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;PreeditInApplication&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;True&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;customize-quick-phrase&quot;&gt;Customize Quick Phrase&lt;/h4&gt;
+
+&lt;p&gt;At First, create a quick phrase database:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;sudo touch&lt;/span&gt; /usr/share/fcitx5/data/quickphrase.d/quick.mb
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And then append all the quick phrases line by line with the format
+&lt;code class=&quot;highlighter-rouge&quot;&gt;input output&lt;/code&gt; to the file:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-txt&quot;&gt;eg e.g
+asap as soon as possible
+omg Oh my god!
+...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can open the Quick Input by pressing down the semicolon, but
+unfortunately, Rime does not support it.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In general, the input experience of fcitx5 is indeed better than
+the previous version. The input is relatively smooth. You can input
+the Chinese semicolon through pressing the semicolon twice. Also, it
+will automatically switch to half-width punctuation when inputting
+English.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://fcitx-im.org/wiki/Fcitx&quot;&gt;Fcitx Official Site&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.csslayer.info/wordpress/fcitx-dev/%e5%a6%82%e4%bd%95%e7%8e%b0%e5%9c%a8%e5%b0%b1%e5%9c%a8-arch-linux-%e7%94%a8%e4%b8%8a-fcitx-5/#comment-28741&quot;&gt;How to use Fcitx5 on Arch Linux now&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><author><name>Jeffrey Tse</name></author><category term="computer" /><category term="computer" /><category term="linux" /><category term="misc" /><summary type="html">Introduction</summary></entry><entry><title type="html">Fix error RC2104 undefined keyword or keyname</title><link href="https://jeffreytse.net/computer/2020/11/06/fix-error-rc2104-undefined-keyword-or-keyname.html" rel="alternate" type="text/html" title="Fix error RC2104 undefined keyword or keyname" /><published>2020-11-06T00:00:00+00:00</published><updated>2020-11-06T00:00:00+00:00</updated><id>https://jeffreytse.net/computer/2020/11/06/fix-error-rc2104-undefined-keyword-or-keyname</id><content type="html" xml:base="https://jeffreytse.net/computer/2020/11/06/fix-error-rc2104-undefined-keyword-or-keyname.html">&lt;h2 id=&quot;1-introduction&quot;&gt;1. Introduction&lt;/h2&gt;
+
+&lt;p&gt;When you use the &lt;strong&gt;Microsoft Visual Studio&lt;/strong&gt; to compile a cpp
+project, and encounter this problem about &lt;code class=&quot;highlighter-rouge&quot;&gt;error RC2104: undefined keyword: Key&lt;/code&gt;, here is an article on how to fix this problem.&lt;/p&gt;
+
+&lt;h2 id=&quot;2-review&quot;&gt;2. Review&lt;/h2&gt;
+
+&lt;p&gt;The picture best illustrates the problem, the error message and
+related code is shown as below image:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/9413601/98320058-0a11a100-201d-11eb-98bd-1423fbc9cf6d.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Therefore, let’s find more about the &lt;code class=&quot;highlighter-rouge&quot;&gt;error RC2104&lt;/code&gt;. And the error
+definition can be found in &lt;a href=&quot;https://docs.microsoft.com/en-us/cpp/error-messages/tool-errors/resource-compiler-error-rc2104&quot;&gt;Resource Compiler Error RC2104&lt;/a&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This error is often caused by a typo in the resource definition,
+or in the included header file. It can also be caused by a missing
+header file.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/9413601/98322246-f583d780-2021-11eb-97b6-cb9385e5beb1.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;But here the problem is quite strange, when you locate to the error
+code, you will find that there is no syntax error at all. &lt;strong&gt;But why it
+always shows us the error on this string?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/9413601/98322286-0c2a2e80-2022-11eb-8333-362c51bbf1bb.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Therefore, let us continue to look for possible errors in the resource
+file. A place that is most likely to cause this problem comes into
+view.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/9413601/98322461-6b883e80-2022-11eb-9c7a-732bc48206da.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We see here that the code page of the resource will be set to
+&lt;a href=&quot;https://www.wikiwand.com/en/Code_page_936&quot;&gt;936&lt;/a&gt;, but our current resource file
+is UTF-8 encoded, here is very likely to cause the resource compiler to
+use the wrong code page to read the content, and eventually cause this
+error.&lt;/p&gt;
+
+&lt;p&gt;So let us comment this line of code page setting:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/9413601/98323261-5f04e580-2024-11eb-83ec-00a396a38cd5.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;and recompile the project again:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/9413601/98323441-b99e4180-2024-11eb-8500-7ae677d92f18.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Wow! What an exciting moment, isn’t it?&lt;/p&gt;
+
+&lt;h2 id=&quot;3-conclusion&quot;&gt;3. Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Now we know that this error is caused by the code page setting does not
+match the actual file character encoding, &lt;strong&gt;so we need to pay special
+attention to this problem, especially when you are compiling a project
+written on different language of operating system&lt;/strong&gt;.&lt;/p&gt;</content><author><name>Jeffrey Tse</name></author><category term="computer" /><category term="computer" /><category term="programming" /><category term="windows" /><category term="misc" /><summary type="html">1. Introduction</summary></entry><entry><title type="html">Why the echo command has no help option?</title><link href="https://jeffreytse.net/computer/2020/10/22/why-the-echo-command-has-no-help-option.html" rel="alternate" type="text/html" title="Why the echo command has no help option?" /><published>2020-10-22T00:00:00+00:00</published><updated>2020-10-22T00:00:00+00:00</updated><id>https://jeffreytse.net/computer/2020/10/22/why-the-echo-command-has-no-help-option</id><content type="html" xml:base="https://jeffreytse.net/computer/2020/10/22/why-the-echo-command-has-no-help-option.html">&lt;h2 id=&quot;1-introduction&quot;&gt;1. Introduction&lt;/h2&gt;
+
+&lt;p&gt;Have you ever tried to use the &lt;code class=&quot;highlighter-rouge&quot;&gt;echo --help&lt;/code&gt; command to get some
+help, but it just simply prints ‘–help’ literally, and similarly,
+that &lt;code class=&quot;highlighter-rouge&quot;&gt;echo --version&lt;/code&gt; has the same result. Why it didn’t work,
+this article will lead us to find out more information.&lt;/p&gt;
+
+&lt;h2 id=&quot;2-learn-more-about&quot;&gt;2. Learn more about&lt;/h2&gt;
+
+&lt;p&gt;This happens because you are using &lt;a href=&quot;https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#index-echo&quot;&gt;the &lt;code class=&quot;highlighter-rouge&quot;&gt;echo&lt;/code&gt; built-in command of
+bash&lt;/a&gt;,
+which does not understand the &lt;code class=&quot;highlighter-rouge&quot;&gt;--help&lt;/code&gt; option. The GNU &lt;code class=&quot;highlighter-rouge&quot;&gt;echo&lt;/code&gt;
+supports a &lt;code class=&quot;highlighter-rouge&quot;&gt;--help&lt;/code&gt; option, as do some others. We could use
+&lt;code class=&quot;highlighter-rouge&quot;&gt;man echo&lt;/code&gt; command that relates to &lt;a href=&quot;https://linux.die.net/man/1/echo&quot;&gt;the linux man page of echo program&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;To access the echo program, rather than the builtin, you can either
+give a path to it:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;/bin/echo &lt;span class=&quot;nt&quot;&gt;--help&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;or use Bash’s &lt;a href=&quot;https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#index-enable&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;enable&lt;/code&gt; command&lt;/a&gt; to disable the built-in version:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;enable&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--help&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Therefore, we can try it as below:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/9413601/96819868-422eb680-1457-11eb-9558-c84535f43335.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://unix.stackexchange.com/questions/153660/why-echo-help-doesnt-give-me-help-page-of-echo&quot;&gt;why ‘echo –help’ doesn’t give me help page of echo?&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><author><name>Jeffrey Tse</name></author><category term="computer" /><category term="computer" /><category term="linux" /><category term="terminal" /><summary type="html">1. Introduction</summary></entry><entry><title type="html">Terminal partial line prompt feature</title><link href="https://jeffreytse.net/computer/2020/10/21/terminal-partial-line-prompt-feature.html" rel="alternate" type="text/html" title="Terminal partial line prompt feature" /><published>2020-10-21T00:00:00+00:00</published><updated>2020-10-21T00:00:00+00:00</updated><id>https://jeffreytse.net/computer/2020/10/21/terminal-partial-line-prompt-feature</id><content type="html" xml:base="https://jeffreytse.net/computer/2020/10/21/terminal-partial-line-prompt-feature.html">&lt;h2 id=&quot;1-introduction&quot;&gt;1. Introduction&lt;/h2&gt;
+
+&lt;p&gt;If you are a user who often deals with terminals, you must have noticed
+that the output ends a line with a highlighted percent symbol on occasion
+with a variety of applications. Maybe you would think it was because the
+output was cancelled early (ctrl+c, for example) or something similar,
+but it doesn’t seem to do this in bash, just do in zsh/fish.&lt;/p&gt;
+
+&lt;h2 id=&quot;2-learn-more-about&quot;&gt;2. Learn more about&lt;/h2&gt;
+
+&lt;p&gt;This happens because it is a “partial line”. The specific feature of zsh
+(and now fish as well) to let you clearly see unterminated lines in a
+command’s output. And by default &lt;a href=&quot;http://zsh.sourceforge.net/Doc/Release/Options.html#Prompting&quot;&gt;zsh goes to the next line to avoid
+covering it with the prompt&lt;/a&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;When a partial line is preserved, by default you will see an
+inverse+bold character at the end of the partial line: a “%” for
+a normal user or a “#” for root. If set, the shell parameter
+PROMPT_EOL_MARK can be used to customize how the end of partial
+lines are shown.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In traditional shells (e.g. sh/bash), if a command outputs some data
+after the last newline character, or, in other words, if it leaves the
+terminal cursor not at the start of the line, the next prompt by the
+shell ends up appended to that last unterminated line.&lt;/p&gt;
+
+&lt;p&gt;Let’s do the test by using the following commands in zsh and bash
+respectively:&lt;/p&gt;
+
+&lt;div class=&quot;language-zsh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;This is a partial line.&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-zsh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;This is a partial line.&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;echo&lt;/code&gt; program options:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-n&lt;/code&gt; - Do not output the trailing newline&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-e&lt;/code&gt; - Enable interpretation of backslash escapes&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-E&lt;/code&gt; - Disable interpretation of backslash escapes (default)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;You will see below result:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/9413601/96744023-2d223b00-13f7-11eb-9ba1-31985f3648b5.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://stackoverflow.com/questions/29497038/why-does-a-curl-request-return-a-percent-sign-with-every-request-in-zsh&quot;&gt;Why does a cURL request return a percent sign (%) with every request in ZSH?&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://unix.stackexchange.com/questions/167582/why-zsh-ends-a-line-with-a-highlighted-percent-symbol&quot;&gt;Why ZSH ends a line with a highlighted percent symbol?&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><author><name>Jeffrey Tse</name></author><category term="computer" /><category term="computer" /><category term="linux" /><category term="terminal" /><summary type="html">1. Introduction</summary></entry><entry><title type="html">Linux config files table</title><link href="https://jeffreytse.net/computer/2020/10/20/linux-config-files-table.html" rel="alternate" type="text/html" title="Linux config files table" /><published>2020-10-20T00:00:00+00:00</published><updated>2020-10-20T00:00:00+00:00</updated><id>https://jeffreytse.net/computer/2020/10/20/linux-config-files-table</id><content type="html" xml:base="https://jeffreytse.net/computer/2020/10/20/linux-config-files-table.html">&lt;h2 id=&quot;table&quot;&gt;Table&lt;/h2&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Path&lt;/th&gt;
+      &lt;th&gt;Type&lt;/th&gt;
+      &lt;th&gt;Scope&lt;/th&gt;
+      &lt;th&gt;Description&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;/etc/locale.conf&lt;/td&gt;
+      &lt;td&gt;File&lt;/td&gt;
+      &lt;td&gt;Global&lt;/td&gt;
+      &lt;td&gt;Global locale&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;/etc/security/limits.conf&lt;/td&gt;
+      &lt;td&gt;File&lt;/td&gt;
+      &lt;td&gt;Global&lt;/td&gt;
+      &lt;td&gt;Global limits for a user&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;/etc/environment&lt;/td&gt;
+      &lt;td&gt;File&lt;/td&gt;
+      &lt;td&gt;Global&lt;/td&gt;
+      &lt;td&gt;Global enviroment variables&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;/etc/profile&lt;/td&gt;
+      &lt;td&gt;File&lt;/td&gt;
+      &lt;td&gt;Global&lt;/td&gt;
+      &lt;td&gt;Global profile&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;/etc/profile.d&lt;/td&gt;
+      &lt;td&gt;Folder&lt;/td&gt;
+      &lt;td&gt;Global&lt;/td&gt;
+      &lt;td&gt;Global profiles&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;/etc/default&lt;/td&gt;
+      &lt;td&gt;Folder&lt;/td&gt;
+      &lt;td&gt;Global&lt;/td&gt;
+      &lt;td&gt;Global defaults(e.g. keyboard, locale)&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;/etc/bash.bashrc&lt;/td&gt;
+      &lt;td&gt;File&lt;/td&gt;
+      &lt;td&gt;Global&lt;/td&gt;
+      &lt;td&gt;Global bash configuration&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;/etc/security/pam_env.conf&lt;/td&gt;
+      &lt;td&gt;File&lt;/td&gt;
+      &lt;td&gt;Global&lt;/td&gt;
+      &lt;td&gt;Global enviroment variables&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;~/.pam_environment&lt;/td&gt;
+      &lt;td&gt;File&lt;/td&gt;
+      &lt;td&gt;User&lt;/td&gt;
+      &lt;td&gt;User enviroment variables&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;~/.profile&lt;/td&gt;
+      &lt;td&gt;File&lt;/td&gt;
+      &lt;td&gt;User&lt;/td&gt;
+      &lt;td&gt;User profile&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;~/.bash_profile&lt;/td&gt;
+      &lt;td&gt;File&lt;/td&gt;
+      &lt;td&gt;User&lt;/td&gt;
+      &lt;td&gt;User profile on bash&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;~/.bash_login&lt;/td&gt;
+      &lt;td&gt;File&lt;/td&gt;
+      &lt;td&gt;User&lt;/td&gt;
+      &lt;td&gt;User configuration on bash login&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;~/.bash_logout&lt;/td&gt;
+      &lt;td&gt;File&lt;/td&gt;
+      &lt;td&gt;User&lt;/td&gt;
+      &lt;td&gt;User configuration on bash logout&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;~/.bashrc&lt;/td&gt;
+      &lt;td&gt;File&lt;/td&gt;
+      &lt;td&gt;User&lt;/td&gt;
+      &lt;td&gt;User bash resources&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;~/.xinitrc&lt;/td&gt;
+      &lt;td&gt;File&lt;/td&gt;
+      &lt;td&gt;User&lt;/td&gt;
+      &lt;td&gt;User resources on X server environment&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;~/.xprofile&lt;/td&gt;
+      &lt;td&gt;File&lt;/td&gt;
+      &lt;td&gt;User&lt;/td&gt;
+      &lt;td&gt;User profile on X server environment&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;~/.xsession&lt;/td&gt;
+      &lt;td&gt;File&lt;/td&gt;
+      &lt;td&gt;User&lt;/td&gt;
+      &lt;td&gt;User session on X server environment&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;p&gt;https://help.ubuntu.com/community/EnvironmentVariables&lt;/p&gt;
+
+&lt;p&gt;https://askubuntu.com/questions/866161/setting-path-variable-in-etc-environment-vs-profile&lt;/p&gt;</content><author><name>Jeffrey Tse</name></author><category term="computer" /><category term="computer" /><category term="linux" /><category term="misc" /><summary type="html">Table</summary></entry><entry><title type="html">Fix warning setlocale cannot change locale</title><link href="https://jeffreytse.net/computer/2020/10/19/fix-warning-setlocale-cannot-change-locale.html" rel="alternate" type="text/html" title="Fix warning setlocale cannot change locale" /><published>2020-10-19T00:00:00+00:00</published><updated>2020-10-19T00:00:00+00:00</updated><id>https://jeffreytse.net/computer/2020/10/19/fix-warning-setlocale-cannot-change-locale</id><content type="html" xml:base="https://jeffreytse.net/computer/2020/10/19/fix-warning-setlocale-cannot-change-locale.html">&lt;h2 id=&quot;1-introduction&quot;&gt;1. Introduction&lt;/h2&gt;
+
+&lt;p&gt;When you are using the terminal and encounter the following warning
+promtp like &lt;code class=&quot;highlighter-rouge&quot;&gt;warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8)&lt;/code&gt;,
+you can not figure it out and you are most likely confused, this
+article would help you solve this problem.&lt;/p&gt;
+
+&lt;h2 id=&quot;2-solution&quot;&gt;2. Solution&lt;/h2&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;locale
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Edit the configuration file for &lt;code class=&quot;highlighter-rouge&quot;&gt;locale-gen&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;vim /etc/locale.gen
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This file lists locales that you wish to have built. You can find a list
+of valid supported locales at /usr/share/i18n/SUPPORTED, and you can add
+user defined locales to /usr/local/share/i18n/SUPPORTED. If you change
+this file, you need to rerun locale-gen.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Add or uncomment the locale &lt;code class=&quot;highlighter-rouge&quot;&gt;en_US.UTF-8 UTF-8&lt;/code&gt; and rerun &lt;code class=&quot;highlighter-rouge&quot;&gt;locale-gen&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;locale-gen
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;3-conclusion&quot;&gt;3. Conclusion&lt;/h2&gt;
+
+&lt;p&gt;This error happens when your terminal settings local locale environment
+variables which doesn’t have the specific locale you requested, to solve
+this problem you should configure and generate the locales.&lt;/p&gt;</content><author><name>Jeffrey Tse</name></author><category term="computer" /><category term="computer" /><category term="linux" /><category term="terminal" /><category term="misc" /><summary type="html">1. Introduction</summary></entry><entry><title type="html">Fix error about non-empty Sec-WebSocket-Protocol header</title><link href="https://jeffreytse.net/computer/2020/10/15/fix-error-about-non-empty-sec-websocket-protocol-header.html" rel="alternate" type="text/html" title="Fix error about non-empty Sec-WebSocket-Protocol header" /><published>2020-10-15T00:00:00+00:00</published><updated>2020-10-15T00:00:00+00:00</updated><id>https://jeffreytse.net/computer/2020/10/15/fix-error-about-non-empty-sec-websocket-protocol-header</id><content type="html" xml:base="https://jeffreytse.net/computer/2020/10/15/fix-error-about-non-empty-sec-websocket-protocol-header.html">&lt;h2 id=&quot;1-introduction&quot;&gt;1. Introduction&lt;/h2&gt;
+
+&lt;p&gt;When you encounter this problem about &lt;code class=&quot;highlighter-rouge&quot;&gt;WebSocket connection to
+'wss://&amp;lt;address&amp;gt;/live' failed: Error during WebSocket
+handshake: Sent non-empty 'Sec-WebSocket-Protocol' header but
+no response was received&lt;/code&gt;, here is an article on how to fix this
+problem.&lt;/p&gt;
+
+&lt;h2 id=&quot;2-review&quot;&gt;2. Review&lt;/h2&gt;
+
+&lt;p&gt;According to the error message, we know that the WebSocket client
+sent a request with non-empty &lt;strong&gt;‘Sec-WebSocket-Protocol’&lt;/strong&gt; header as
+shown below:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/9413601/96110449-77e11600-0f12-11eb-91c2-d75903ded4a8.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Therefore, let’s find more about the &lt;code class=&quot;highlighter-rouge&quot;&gt;Sec-WebSocket-Protocol&lt;/code&gt; header
+field. And the header field definition can be found in &lt;a href=&quot;https://tools.ietf.org/html/rfc6455#page-59&quot;&gt;RFC 6455&lt;/a&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;It is used in the WebSocket opening handshake. It is sent from the
+client to the server and back from the server to the client to
+confirm the subprotocol of the connection.  This enables scripts to
+both select a subprotocol and be sure that the server agreed to
+serve that subprotocol.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;3-conclusion&quot;&gt;3. Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Now we know that this problem is caused by the backend server not
+agreeing to serve the subprotocol (Known by above picture it is
+&lt;code class=&quot;highlighter-rouge&quot;&gt;x-wss&lt;/code&gt;). Therefore, we should add the &lt;code class=&quot;highlighter-rouge&quot;&gt;Sec-WebSocket-Protocol&lt;/code&gt;
+header field to the response in our server side, and the value
+should be the same with the client. Otherwise, the connection will
+be closed.&lt;/p&gt;</content><author><name>Jeffrey Tse</name></author><category term="computer" /><category term="computer" /><category term="fullstack" /><category term="misc" /><summary type="html">1. Introduction</summary></entry><entry><title type="html">How to use netcat command</title><link href="https://jeffreytse.net/computer/2020/10/14/how-to-use-netcat-command.html" rel="alternate" type="text/html" title="How to use netcat command" /><published>2020-10-14T00:00:00+00:00</published><updated>2020-10-14T00:00:00+00:00</updated><id>https://jeffreytse.net/computer/2020/10/14/how-to-use-netcat-command</id><content type="html" xml:base="https://jeffreytse.net/computer/2020/10/14/how-to-use-netcat-command.html">&lt;h2 id=&quot;1-introduction&quot;&gt;1. Introduction&lt;/h2&gt;
+
+&lt;p&gt;Command &lt;code class=&quot;highlighter-rouge&quot;&gt;nc&lt;/code&gt; stands for &lt;strong&gt;netcat&lt;/strong&gt;, known as the swiss army knife of
+network tools, it’s a utility which is used for reading and writing
+data across TCP and UDP ports. It can be used for a lot of cool
+stuff, this article will take a closer look.&lt;/p&gt;
+
+&lt;p&gt;There are two similar packages available for netcat with a slight
+difference between them:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Traditional GNU netcat (such as Ncat in the CentOS is nmap package)&lt;/li&gt;
+  &lt;li&gt;OpenBSD nc (such as the nc that comes with MacOS).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Their parameters are not exactly the same. For example, BSD &lt;code class=&quot;highlighter-rouge&quot;&gt;nc&lt;/code&gt;
+cannot use &lt;code class=&quot;highlighter-rouge&quot;&gt;-p&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;-l&lt;/code&gt; at the same time, which is easy to cause
+confusion for novices.&lt;/p&gt;
+
+&lt;p&gt;netcat/nc/ncat/nmap&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Linux/macOS&lt;/strong&gt; users can quickly use in the terminal with pre-installed
+Nc (and Netcat on Linux)&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Windows&lt;/strong&gt; users will need to install Netcat’s successor, Ncat, made
+by the Nmap project&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;2-using-for-port-scanning&quot;&gt;2. Using for port scanning&lt;/h2&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;nc &lt;span class=&quot;nt&quot;&gt;-zv&lt;/span&gt; domain.com 1-1000
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;nc &lt;span class=&quot;nt&quot;&gt;-znv&lt;/span&gt; 1.2.3.4 1-1000
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;nmap &lt;span class=&quot;nt&quot;&gt;-Pn&lt;/span&gt; 1.2.3.4
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-z&lt;/code&gt; – See if the port is open without sending data&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-n&lt;/code&gt; – Dont resolve, numeric-only IP addresses, no DNS lookup&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-v&lt;/code&gt; – Show verbose information&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-w&lt;/code&gt; – Set a timeout between the client and the target node, otherwise
+Netcat will continue trying until a connection is made or you manually
+close the attempt (&lt;code class=&quot;highlighter-rouge&quot;&gt;Ctrl + C&lt;/code&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;3-using-for-http-requests&quot;&gt;3. Using for HTTP Requests&lt;/h2&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;printf&lt;/span&gt; “GET / HTTP/1.0&lt;span class=&quot;se&quot;&gt;\r\n\r\n&lt;/span&gt;” | nc google.com 80
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;4-using-for-chatroom&quot;&gt;4. Using for Chatroom&lt;/h2&gt;
+
+&lt;h2 id=&quot;5-launching-reverse-backdoor-shells&quot;&gt;5. Launching Reverse (Backdoor) Shells&lt;/h2&gt;
+
+&lt;p&gt;Server:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;nc &lt;span class=&quot;nt&quot;&gt;-l&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;port] &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; /bin/bash
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Client:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;nc &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; 127.0.0.1 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;port]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Jeffrey Tse</name></author><category term="computer" /><category term="computer" /><category term="linux" /><category term="terminal" /><category term="note" /><summary type="html">1. Introduction</summary></entry><entry><title type="html">Fix errors occurred no packages were upgraded in Arch Linux</title><link href="https://jeffreytse.net/computer/2020/10/07/fix-errors-occurred-no-packages-were-upgraded-in-arch-linux.html" rel="alternate" type="text/html" title="Fix errors occurred no packages were upgraded in Arch Linux" /><published>2020-10-07T00:00:00+00:00</published><updated>2020-10-07T00:00:00+00:00</updated><id>https://jeffreytse.net/computer/2020/10/07/fix-errors-occurred-no-packages-were-upgraded-in-arch-linux</id><content type="html" xml:base="https://jeffreytse.net/computer/2020/10/07/fix-errors-occurred-no-packages-were-upgraded-in-arch-linux.html">&lt;h2 id=&quot;1-whats-up&quot;&gt;1. What’s up?&lt;/h2&gt;
+
+&lt;p&gt;When you use &lt;code class=&quot;highlighter-rouge&quot;&gt;yay -S &amp;lt;package&amp;gt;&lt;/code&gt; to install some package and face this
+prompt &lt;code class=&quot;highlighter-rouge&quot;&gt;errors occured, no packages were upgraded&lt;/code&gt;, don’t worry, this
+article will guide you to settle it down.&lt;/p&gt;
+
+&lt;h2 id=&quot;2-problem-reproduce&quot;&gt;2. Problem reproduce&lt;/h2&gt;
+
+&lt;p&gt;At First, let’s try to remove any local package(e.g. zoom) mannually:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo rm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-rf&lt;/span&gt; /var/lib/pacman/local/zoom-2.9.265650.0716-1/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And then we install this package again:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;yay &lt;span class=&quot;nt&quot;&gt;-S&lt;/span&gt; zoom
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Look! We reproduced this problem as below:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/9413601/95348585-c548fc00-08f0-11eb-9d55-55b943426eec.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;3-fix-the-problem&quot;&gt;3. Fix the problem&lt;/h2&gt;
+
+&lt;p&gt;Since we only partially removed the package metadata files, the package
+is inconsistent with the database, so that the package was corrupted.&lt;/p&gt;
+
+&lt;p&gt;Therefore, we should install the package with overwrite option:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;yay &lt;span class=&quot;nt&quot;&gt;-S&lt;/span&gt; zoom &lt;span class=&quot;nt&quot;&gt;--overwrite&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'*'&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;or&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;yay &lt;span class=&quot;nt&quot;&gt;-S&lt;/span&gt; zoom &lt;span class=&quot;nt&quot;&gt;--dbonly&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Congratulations! Now the package can be installed without any error prompts.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://user-images.githubusercontent.com/9413601/95345539-67ff7b80-08ed-11eb-86ef-e29754dd69e2.png&quot; alt=&quot;image&quot; /&gt;&lt;/p&gt;</content><author><name>Jeffrey Tse</name></author><category term="computer" /><category term="computer" /><category term="linux" /><category term="misc" /><summary type="html">1. What’s up?</summary></entry></feed>
